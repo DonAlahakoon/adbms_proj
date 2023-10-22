@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Blood_Donor_Portal.Data;
 using Blood_Donor_Portal.Models;
+using Microsoft.Data.SqlClient;
 
 namespace Blood_Donor_Portal.Controllers
 {
@@ -22,9 +23,8 @@ namespace Blood_Donor_Portal.Controllers
         // GET: BloodCamps
         public async Task<IActionResult> Index()
         {
-              return _context.BloodCamp != null ? 
-                          View(await _context.BloodCamp.ToListAsync()) :
-                          Problem("Entity set 'ApplicationDbContext.BloodCamp'  is null.");
+            var GetAllBloodCamps = _context.BloodCamp.FromSqlRaw("GetAllBloodCamps").ToList();
+            return View(GetAllBloodCamps);
         }
         // GET: BloodCamps/ShowSearchForm
         public async Task<IActionResult> ShowSearchForm()
@@ -38,15 +38,14 @@ namespace Blood_Donor_Portal.Controllers
         }
 
         // GET: BloodCamps/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Details(int? id)//using procedure
         {
             if (id == null || _context.BloodCamp == null)
             {
                 return NotFound();
             }
-
-            var bloodCamp = await _context.BloodCamp
-                .FirstOrDefaultAsync(m => m.Camp_ID == id);
+            
+            var bloodCamp = _context.BloodCamp.FromSqlRaw($"GetBloodCampByID {id}").AsEnumerable().FirstOrDefault();
             if (bloodCamp == null)
             {
                 return NotFound();
@@ -98,34 +97,61 @@ namespace Blood_Donor_Portal.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Camp_ID,Date,StartTime,EndTime,Location,Coordinator,Organization")] BloodCamp bloodCamp)
+        public async Task<IActionResult> Edit(int Camp_ID,DateTime Date,TimeSpan StartTime,TimeSpan EndTime,String Location,String Coordinator,String Organization)
         {
-            if (id != bloodCamp.Camp_ID)
+            var param = new SqlParameter[]
             {
-                return NotFound();
-            }
+                new SqlParameter()
+                {
+                    ParameterName="@Id",
+                    SqlDbType=System.Data.SqlDbType.Int,
+                    Value=Camp_ID
+                },
+                new SqlParameter()
+                {
+                    ParameterName="@Date",
+                    SqlDbType=System.Data.SqlDbType.DateTime2,
+                    Value=Date
+                },new SqlParameter()
+                {
+                    ParameterName="@STime",
+                    SqlDbType=System.Data.SqlDbType.Time,
+                    Value=StartTime
+                },new SqlParameter()
+                {
+                    ParameterName="@ETime",
+                    SqlDbType=System.Data.SqlDbType.Time,
+                    Value=EndTime
+                },new SqlParameter()
+                {
+                    ParameterName="@Location",
+                    SqlDbType=System.Data.SqlDbType.VarChar,
+                    Value=Location
+                },
+                new SqlParameter()
+                {
+                    ParameterName="@Cordinator",
+                    SqlDbType=System.Data.SqlDbType.VarChar,
+                    Value=Coordinator
+                },
+                new SqlParameter()
+                {
+                    ParameterName="@Organization",
+                    SqlDbType=System.Data.SqlDbType.VarChar,
+                    Value=Organization
+                }
+            };
 
-            if (ModelState.IsValid)
+            var UpdateBloodCamp = await _context.Database.ExecuteSqlRawAsync($"Exec UpdateBloodCampById @Id,@Date,@Stime,@ETime,@Location,@Cordinator,@Organization",param);
+            if(UpdateBloodCamp == 1)
             {
-                try
-                {
-                    _context.Update(bloodCamp);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!BloodCampExists(bloodCamp.Camp_ID))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index");
             }
-            return View(bloodCamp);
+            else
+            {
+                return View(UpdateBloodCamp);
+            }
+            
         }
 
         // GET: BloodCamps/Delete/5
