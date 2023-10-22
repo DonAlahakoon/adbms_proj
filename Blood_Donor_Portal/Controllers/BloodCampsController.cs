@@ -21,7 +21,7 @@ namespace Blood_Donor_Portal.Controllers
         }
 
         // GET: BloodCamps
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index()//Using procedure
         {
             var GetAllBloodCamps = _context.BloodCamp.FromSqlRaw("GetAllBloodCamps").ToList();
             return View(GetAllBloodCamps);
@@ -97,7 +97,7 @@ namespace Blood_Donor_Portal.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int Camp_ID,DateTime Date,TimeSpan StartTime,TimeSpan EndTime,String Location,String Coordinator,String Organization)
+        public async Task<IActionResult> Edit(int Camp_ID,DateTime Date,TimeSpan StartTime,TimeSpan EndTime,String Location,String Coordinator,String Organization)//using procedure
         {
             var param = new SqlParameter[]
             {
