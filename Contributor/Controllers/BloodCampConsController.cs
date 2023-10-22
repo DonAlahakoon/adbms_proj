@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Contributor.Data;
 using Contributor.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Contributor.Controllers
 {
+    [Authorize]
     public class BloodCampConsController : Controller
     {
         private readonly ApplicationDbContext _context;

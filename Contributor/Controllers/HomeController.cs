@@ -28,5 +28,20 @@ namespace Contributor.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+
+        public IActionResult ContributorPortal()
+        {
+            // Your logic here to retrieve user-specific data
+            return View();
+        }
+
+        public IActionResult Login()
+        {
+            // Your login logic here...
+
+            // Redirect to the Profile action
+            return RedirectToAction("ContributorPortal", "Home");
+        }
+
     }
 }
